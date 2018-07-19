@@ -26,12 +26,17 @@ func main() {
   log.Infof("Cloning %s...", cfg.BuildTargetUrl)
 
   // Validate build target's config file.
+  log.Infoln("Validating config file...")
 
   // Git clone buildpack.
+  log.Infof("Cloning %s buildpack...", cfg.TargetCluster)
 
   // Attach buildpack to target.
+  log.Infoln("Attaching buildpack to target...")
 
   // Build augmented target into Docker image.
+  log.Infoln("Building target image...")
 
   // Push Docker image to external repository.
+  log.Infoln("Registering target image...")
 }
