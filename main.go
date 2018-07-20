@@ -6,6 +6,7 @@ import (
   "github.com/sweettea-io/build-server/internal/pkg/logger"
   "github.com/sweettea-io/build-server/internal/pkg/redis"
   "github.com/sweettea-io/build-server/internal/pkg/docker"
+  "github.com/sweettea-io/build-server/internal/pkg/util/targetvalidator"
 )
 
 func main() {
@@ -27,34 +28,33 @@ func main() {
   log.Infof("Cloning %s...", cfg.BuildTargetUrl)
 
   // Git clone build target.
-  targetCloneErr := gogit.CloneAtSha(
+  if err := gogit.CloneAtSha(
     cfg.BuildTargetUrl,
     cfg.BuildTargetSha,
     cfg.BuildTargetLocalPath,
     log.Logger.Out,
-  )
-
-  if targetCloneErr != nil {
-    log.Errorf("Error cloning target repository: %s", targetCloneErr.Error())
+  ); err != nil {
+    log.Errorf("Error cloning target repository: %s", err.Error())
     return
   }
 
   log.Infoln("Validating target config file...")
 
   // Validate build target's config file.
+  if err := targetvalidator.Validate(cfg.BuildTargetLocalPath); err != nil {
+    log.Errorf("Error validating build target's config file: %s", err.Error())
+  }
 
   log.Infof("Cloning %s buildpack...", cfg.Buildpack)
 
   // Git clone buildpack.
-  bpCloneErr := gogit.CloneAtSha(
+  if err := gogit.CloneAtSha(
     cfg.BuildpackUrl,
     cfg.BuildpackSha,
     cfg.BuildpackLocalPath,
     log.Logger.Out,
-  )
-
-  if bpCloneErr != nil {
-    log.Errorf("Error cloning buildpack repository: %s", bpCloneErr.Error())
+  ); err != nil {
+    log.Errorf("Error cloning buildpack repository: %s", err.Error())
     return
   }
 
@@ -63,30 +63,26 @@ func main() {
   // Attach buildpack to target.
 
   // Initialize new Docker client.
-  dockerInitErr := docker.Init(cfg.DockerHost, cfg.DockerAPIVersion, map[string]string{})
-
-  if dockerInitErr != nil {
-    log.Errorf("Error initializing new docker client: %s", dockerInitErr.Error())
+  if err := docker.Init(cfg.DockerHost, cfg.DockerAPIVersion, map[string]string{}); err != nil {
+    log.Errorf("Error initializing new Docker client: %s", err.Error())
     return
   }
-
-  log.Infoln("Building target image...")
 
   // Get tag to be used with this Docker image.
   imageTag := cfg.ImageTag()
 
-  // Build augmented target into Docker image.
-  dockerBuildErr := docker.Build(cfg.BuildTargetLocalPath, imageTag)
+  log.Infoln("Building target image...")
 
-  if dockerBuildErr != nil {
-    log.Errorf("Error building docker image: %s", dockerBuildErr.Error())
+  // Build augmented target into Docker image.
+  if err := docker.Build(cfg.BuildTargetLocalPath, imageTag); err != nil {
+    log.Errorf("Error building Docker image: %s", err.Error())
     return
   }
 
   log.Infoln("Registering target image...")
 
   // Push Docker image to external repository.
-  if dockerPushErr := docker.Push(imageTag); dockerPushErr != nil {
-    log.Errorf("Error registering target image: %s", dockerPushErr.Error())
+  if err := docker.Push(imageTag); err != nil {
+    log.Errorf("Error registering Docker image: %s", err.Error())
   }
 }

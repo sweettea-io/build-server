@@ -8,27 +8,27 @@ import (
 
 // Config represents app config populated from environment variables.
 type Config struct {
-  Buildpack              string `env:"BUILDPACK,required"`
-  BuildpackUrl           string `env:"BUILDPACK_URL,required"`
-  BuildpackSha           string `env:"BUILDPACK_SHA,required"`
-  BuildpackLocalPath     string `env:"BUILDPACK_LOCAL_PATH,default=/tmp/buildpack"`
-  BuildTargetLocalPath   string `env:"BUILD_TARGET_LOCAL_PATH,default=/tmp/target"`
-  BuildTargetUid         string `env:"BUILD_TARGET_UID,required"`
-  BuildTargetUrl         string `env:"BUILD_TARGET_URL,required"`
-  BuildTargetSha         string `env:"BUILD_TARGET_SHA,required"`
-  Debug                  bool   `env:"DEBUG,required"`
-  DeployUid              string `env:"DEPLOY_UID,required"`
-  DockerHost             string `env:"DOCKER_HOST,default=unix:///var/run/docker.sock"`
-  DockerAPIVersion       string `env:"DOCKER_API_VERSION,default=v1.30"`
-  Env                    string `env:"ENV,required"`
-  ImageOwner             string `env:"IMAGE_OWNER,required"`
-  ImageOwnerPw           string `env:"IMAGE_OWNER_PW,required"`
-  RedisPoolMaxActive     int    `env:"REDIS_POOL_MAX_ACTIVE,required"`
-  RedisPoolMaxIdle       int    `env:"REDIS_POOL_MAX_IDLE,required"`
-  RedisPoolWait          bool   `env:"REDIS_POOL_WAIT,required"`
-  RedisAddress           string `env:"REDIS_ADDRESS,required"`
-  RedisPassword          string `env:"REDIS_PASSWORD"`
-  TargetCluster          string `env:"TARGET_CLUSTER,required"`
+  Buildpack            string `env:"BUILDPACK,required"`
+  BuildpackUrl         string `env:"BUILDPACK_URL,required"`
+  BuildpackSha         string `env:"BUILDPACK_SHA,required"`
+  BuildpackLocalPath   string `env:"BUILDPACK_LOCAL_PATH,default=/tmp/buildpack"`
+  BuildTargetLocalPath string `env:"BUILD_TARGET_LOCAL_PATH,default=/tmp/target"`
+  BuildTargetUid       string `env:"BUILD_TARGET_UID,required"`
+  BuildTargetUrl       string `env:"BUILD_TARGET_URL,required"`
+  BuildTargetSha       string `env:"BUILD_TARGET_SHA,required"`
+  Debug                bool   `env:"DEBUG,required"`
+  DeployUid            string `env:"DEPLOY_UID,required"`
+  DockerHost           string `env:"DOCKER_HOST,default=unix:///var/run/docker.sock"`
+  DockerAPIVersion     string `env:"DOCKER_API_VERSION,default=v1.30"`
+  Env                  string `env:"ENV,required"`
+  ImageOwner           string `env:"IMAGE_OWNER,required"`
+  ImageOwnerPw         string `env:"IMAGE_OWNER_PW,required"`
+  RedisPoolMaxActive   int    `env:"REDIS_POOL_MAX_ACTIVE,required"`
+  RedisPoolMaxIdle     int    `env:"REDIS_POOL_MAX_IDLE,required"`
+  RedisPoolWait        bool   `env:"REDIS_POOL_WAIT,required"`
+  RedisAddress         string `env:"REDIS_ADDRESS,required"`
+  RedisPassword        string `env:"REDIS_PASSWORD"`
+  TargetCluster        string `env:"TARGET_CLUSTER,required"`
 }
 
 // LogStreamKey returns the redis key of the redis stream used for logging.
