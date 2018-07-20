@@ -66,6 +66,7 @@ func main() {
   log.Infoln("Attaching buildpack to target...")
 
   if err := targetutil.AttachBuildpack(
+    cfg.Buildpack,
     cfg.BuildpackLocalPath,
     cfg.BuildTargetLocalPath,
     cfg.BuildTargetUid,
