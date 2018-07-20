@@ -1,4 +1,4 @@
-package targetcluster
+package targetutil
 
 // Supported target clusters
 const Train = "train"

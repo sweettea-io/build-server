@@ -6,6 +6,7 @@ import (
   "context"
   "github.com/sweettea-io/build-server/internal/pkg/util/tar"
   "github.com/docker/docker/api/types"
+  "io"
 )
 
 var dockerClient *client.Client
@@ -54,5 +55,15 @@ func Build(dir string, tag string) error {
 
 // Push a specified Docker image or repository to a registry.
 func Push(name string) error {
+  // Push image.
+  output, err := dockerClient.ImagePush(context.Background(), name, types.ImagePushOptions{})
+
+  if err != nil {
+    return err
+  }
+
+  // Copy log output from push command to stdout.
+  io.Copy(os.Stdout, output)
+
   return nil
 }

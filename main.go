@@ -8,6 +8,7 @@ import (
   "github.com/sweettea-io/build-server/internal/pkg/docker"
   "github.com/sweettea-io/build-server/internal/pkg/util/targetvalidator"
   "github.com/sweettea-io/build-server/internal/pkg/util/bputil"
+  "github.com/sweettea-io/build-server/internal/pkg/util/targetutil"
 )
 
 func main() {
@@ -42,7 +43,7 @@ func main() {
   log.Infoln("Validating target config file...")
 
   // Validate build target's config file.
-  if err := targetvalidator.Validate(cfg.BuildTargetLocalPath); err != nil {
+  if err := targetutil.ValidateConfig(cfg.BuildTargetLocalPath); err != nil {
     log.Errorf("Error validating build target's config file: %s", err.Error())
   }
 
@@ -62,7 +63,7 @@ func main() {
   log.Infoln("Attaching buildpack to target...")
 
   // Attach buildpack to target.
-  if err := bputil.AttachBuildpackToTarget(cfg.BuildpackLocalPath, cfg.BuildTargetLocalPath); err != nil {
+  if err := targetutil.AttachBuildpack(cfg.BuildpackLocalPath, cfg.BuildTargetLocalPath); err != nil {
     log.Errorf("Error attaching buildpack to target: %s", err.Error())
     return
   }

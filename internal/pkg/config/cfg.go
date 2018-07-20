@@ -3,7 +3,7 @@ package config
 import (
   "fmt"
   "github.com/sweettea-io/envdecode"
-  "github.com/sweettea-io/build-server/internal/pkg/util/targetcluster"
+  "github.com/sweettea-io/build-server/internal/pkg/util/targetutil"
 )
 
 // Config represents app config populated from environment variables.
@@ -58,9 +58,9 @@ func New() *Config {
 // already been done during the Decode process.
 func validateConfigs(cfg *Config) {
   // Ensure TARGET_CLUSTER value is supported.
-  if !targetcluster.IsValidTargetCluster(cfg.TargetCluster) {
+  if !targetutil.IsValidTargetCluster(cfg.TargetCluster) {
     panic(fmt.Errorf(
-      "%s is not a valid target cluster. Check 'internal/pkg/util/targetcluster/clusters.go' for a list of valid options.\n",
+      "%s is not a valid target cluster. Check 'internal/pkg/util/targetutil/clusters.go' for a list of valid options.\n",
       cfg.TargetCluster,
     ))
   }
