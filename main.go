@@ -2,12 +2,10 @@ package main
 
 import (
   "github.com/sweettea-io/build-server/internal/pkg/config"
+  "github.com/sweettea-io/build-server/internal/pkg/docker"
   "github.com/sweettea-io/build-server/internal/pkg/gogit"
   "github.com/sweettea-io/build-server/internal/pkg/logger"
   "github.com/sweettea-io/build-server/internal/pkg/redis"
-  "github.com/sweettea-io/build-server/internal/pkg/docker"
-  "github.com/sweettea-io/build-server/internal/pkg/util/targetvalidator"
-  "github.com/sweettea-io/build-server/internal/pkg/util/bputil"
   "github.com/sweettea-io/build-server/internal/pkg/util/targetutil"
 )
 
