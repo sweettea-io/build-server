@@ -7,6 +7,7 @@ import (
   "github.com/sweettea-io/build-server/internal/pkg/redis"
   "github.com/sweettea-io/build-server/internal/pkg/docker"
   "github.com/sweettea-io/build-server/internal/pkg/util/targetvalidator"
+  "github.com/sweettea-io/build-server/internal/pkg/util/bputil"
 )
 
 func main() {
@@ -61,6 +62,10 @@ func main() {
   log.Infoln("Attaching buildpack to target...")
 
   // Attach buildpack to target.
+  if err := bputil.AttachBuildpackToTarget(cfg.BuildpackLocalPath, cfg.BuildTargetLocalPath); err != nil {
+    log.Errorf("Error attaching buildpack to target: %s", err.Error())
+    return
+  }
 
   // Initialize new Docker client.
   if err := docker.Init(cfg.DockerHost, cfg.DockerAPIVersion, map[string]string{}); err != nil {
