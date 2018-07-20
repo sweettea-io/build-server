@@ -48,6 +48,7 @@ func AttachBuildpack(buildpack string, bpPath string, targetPath string, targetU
   ignorables := []string{
     ".gitignore",
     ".git",
+    "README.md",
   }
 
   // Move all buildpack files & dirs into the target project, except for those in `ignorables`.
