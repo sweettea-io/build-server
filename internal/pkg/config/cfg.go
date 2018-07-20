@@ -9,11 +9,12 @@ import (
 type Config struct {
   Buildpack              string `env:"BUILDPACK,required"`
   BuildpackUrl           string `env:"BUILDPACK_URL,required"`
-  //BuildpackSha           string `env:"BUILDPACK_SHA,required"`
+  BuildpackSha           string `env:"BUILDPACK_SHA,required"`
+  BuildpackLocalPath     string `env:"BUILDPACK_LOCAL_PATH,default=/tmp/buildpack"`
+  BuildTargetLocalPath   string `env:"BUILD_TARGET_LOCAL_PATH,default=/tmp/target"`
   BuildTargetUid         string `env:"BUILD_TARGET_UID,required"`
   BuildTargetUrl         string `env:"BUILD_TARGET_URL,required"`
-  // TODO: remove BuildTargetSha if you can just include the sha inside the BuildTargerUrl
-  //BuildTargetSha         string `env:"BUILD_TARGET_SHA,required"`
+  BuildTargetSha         string `env:"BUILD_TARGET_SHA,required"`
   Debug                  bool   `env:"DEBUG,required"`
   DeployUid              string `env:"DEPLOY_UID,required"`
   Env                    string `env:"ENV,required"`
