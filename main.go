@@ -26,10 +26,10 @@ func main() {
   log.Infof("Cloning %s...", cfg.BuildTargetUrl)
 
   // Validate build target's config file.
-  log.Infoln("Validating config file...")
+  log.Infoln("Validating target config file...")
 
   // Git clone buildpack.
-  log.Infof("Cloning %s buildpack...", cfg.TargetCluster)
+  log.Infof("Cloning %s buildpack...", cfg.Buildpack)
 
   // Attach buildpack to target.
   log.Infoln("Attaching buildpack to target...")

@@ -7,7 +7,9 @@ import (
 
 // Config represents app config populated from environment variables.
 type Config struct {
-  BuildpackSha           string `env:"BUILDPACK_SHA,required"`
+  Buildpack              string `env:"BUILDPACK,required"`
+  BuildpackUrl           string `env:"BUILDPACK_URL,required"`
+  //BuildpackSha           string `env:"BUILDPACK_SHA,required"`
   BuildTargetUid         string `env:"BUILD_TARGET_UID,required"`
   BuildTargetUrl         string `env:"BUILD_TARGET_URL,required"`
   // TODO: remove BuildTargetSha if you can just include the sha inside the BuildTargerUrl
