@@ -24,7 +24,7 @@ func Init(host string, apiVersion string, httpHeaders map[string]string) error {
 }
 
 // Build a Docker image from the specified directory containing a Dockerfile.
-func Build(dir string, tag string) error {
+func Build(dir string, tag string, buildArgs map[string]*string) error {
   // Create tar file from build dir (ex. '/my/path' --> '/my/path.tar')
   buildContextPath, err := tar.Create(dir)
 
@@ -43,6 +43,7 @@ func Build(dir string, tag string) error {
     ForceRemove: true,
     PullParent: true,
     Tags: []string{tag},
+    BuildArgs: buildArgs,
   }
 
   // Build the Docker image.

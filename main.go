@@ -91,7 +91,9 @@ func main() {
   log.Infoln("Building target image...")
 
   imageTag := cfg.ImageTag()
-  if err := docker.Build(cfg.BuildTargetLocalPath, imageTag); err != nil {
+  buildArgs := map[string]*string{"TARGET_UID": &cfg.BuildTargetUid}
+
+  if err := docker.Build(cfg.BuildTargetLocalPath, imageTag, buildArgs); err != nil {
     log.Errorf("Error building Docker image: %s", err.Error())
     return
   }
