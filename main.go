@@ -62,22 +62,31 @@ func main() {
 
   // Attach buildpack to target.
 
-  // Initialize new docker client.
+  // Initialize new Docker client.
   dockerInitErr := docker.Init(cfg.DockerHost, cfg.DockerAPIVersion, map[string]string{})
 
   if dockerInitErr != nil {
     log.Errorf("Error initializing new docker client: %s", dockerInitErr.Error())
+    return
   }
 
   log.Infoln("Building target image...")
 
+  // Get tag to be used with this Docker image.
+  imageTag := cfg.ImageTag()
+
   // Build augmented target into Docker image.
-  dockerBuildErr := docker.Build(cfg.BuildTargetLocalPath, cfg.ImageTag())
+  dockerBuildErr := docker.Build(cfg.BuildTargetLocalPath, imageTag)
 
   if dockerBuildErr != nil {
     log.Errorf("Error building docker image: %s", dockerBuildErr.Error())
+    return
   }
 
-  // Push Docker image to external repository.
   log.Infoln("Registering target image...")
+
+  // Push Docker image to external repository.
+  if dockerPushErr := docker.Push(imageTag); dockerPushErr != nil {
+    log.Errorf("Error registering target image: %s", dockerPushErr.Error())
+  }
 }

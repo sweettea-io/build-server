@@ -10,6 +10,7 @@ import (
 
 var dockerClient *client.Client
 
+// Init creates a new Docker client.
 func Init(host string, apiVersion string, httpHeaders map[string]string) error {
   var err error
   dockerClient, err = client.NewClient(host, apiVersion, nil, httpHeaders)
@@ -21,6 +22,7 @@ func Init(host string, apiVersion string, httpHeaders map[string]string) error {
   return nil
 }
 
+// Build a Docker image from the specified directory containing a Dockerfile.
 func Build(dir string, tag string) error {
   // Create tar file from build dir (ex. '/my/path' --> '/my/path.tar')
   buildContextPath, err := tar.Create(dir)
@@ -33,7 +35,7 @@ func Build(dir string, tag string) error {
   buildContext, err := os.Open(buildContextPath)
   defer buildContext.Close()
 
-  // Create docker build options
+  // Create Docker build options
   buildOpts := types.ImageBuildOptions{
     SuppressOutput: false,
     Remove: true,
@@ -42,10 +44,15 @@ func Build(dir string, tag string) error {
     Tags: []string{tag},
   }
 
-  // Build the docker image.
+  // Build the Docker image.
   if _, err := dockerClient.ImageBuild(context.Background(), buildContext, buildOpts); err != nil {
     return err
   }
 
+  return nil
+}
+
+// Push a specified Docker image or repository to a registry.
+func Push(name string) error {
   return nil
 }
