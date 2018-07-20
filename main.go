@@ -5,6 +5,7 @@ import (
   "github.com/sweettea-io/build-server/internal/pkg/gogit"
   "github.com/sweettea-io/build-server/internal/pkg/logger"
   "github.com/sweettea-io/build-server/internal/pkg/redis"
+  "github.com/sweettea-io/build-server/internal/pkg/docker"
 )
 
 func main() {
@@ -38,8 +39,9 @@ func main() {
     return
   }
 
-  // Validate build target's config file.
   log.Infoln("Validating target config file...")
+
+  // Validate build target's config file.
 
   log.Infof("Cloning %s buildpack...", cfg.Buildpack)
 
@@ -56,11 +58,25 @@ func main() {
     return
   }
 
-  // Attach buildpack to target.
   log.Infoln("Attaching buildpack to target...")
 
-  // Build augmented target into Docker image.
+  // Attach buildpack to target.
+
+  // Initialize new docker client.
+  dockerInitErr := docker.Init(cfg.DockerHost, cfg.DockerAPIVersion, map[string]string{})
+
+  if dockerInitErr != nil {
+    log.Errorf("Error initializing new docker client: %s", dockerInitErr.Error())
+  }
+
   log.Infoln("Building target image...")
+
+  // Build augmented target into Docker image.
+  dockerBuildErr := docker.Build(cfg.BuildTargetLocalPath, cfg.ImageTag())
+
+  if dockerBuildErr != nil {
+    log.Errorf("Error building docker image: %s", dockerBuildErr.Error())
+  }
 
   // Push Docker image to external repository.
   log.Infoln("Registering target image...")

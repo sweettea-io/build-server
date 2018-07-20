@@ -18,6 +18,8 @@ type Config struct {
   BuildTargetSha         string `env:"BUILD_TARGET_SHA,required"`
   Debug                  bool   `env:"DEBUG,required"`
   DeployUid              string `env:"DEPLOY_UID,required"`
+  DockerHost             string `env:"DOCKER_HOST,default=unix:///var/run/docker.sock"`
+  DockerAPIVersion       string `env:"DOCKER_API_VERSION,default=v1.30"`
   Env                    string `env:"ENV,required"`
   ImageOwner             string `env:"IMAGE_OWNER,required"`
   ImageOwnerPw           string `env:"IMAGE_OWNER_PW,required"`
@@ -32,6 +34,10 @@ type Config struct {
 // LogStreamKey returns the redis key of the redis stream used for logging.
 func (cfg *Config) LogStreamKey() string {
   return fmt.Sprintf("%s-deploy:%s", cfg.TargetCluster, cfg.DeployUid)
+}
+
+func (cfg *Config) ImageTag() string {
+  return "<tag>"
 }
 
 // New creates and returns a new Config struct instance populated from environment variables.
