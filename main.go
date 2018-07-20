@@ -25,9 +25,10 @@ func main() {
   // Create new logger.
   log := logger.New(pool, cfg.LogStreamKey())
 
+  // ------------- CLONE TARGET REPO -------------
+
   log.Infof("Cloning %s...", cfg.BuildTargetUrl)
 
-  // Git clone build target.
   if err := gogit.CloneAtSha(
     cfg.BuildTargetUrl,
     cfg.BuildTargetSha,
@@ -38,16 +39,18 @@ func main() {
     return
   }
 
+  // ------------- VALIDATE TARGET CONFIG -------------
+
   log.Infoln("Validating target config file...")
 
-  // Validate build target's config file.
   if err := targetutil.ValidateConfig(cfg.BuildTargetLocalPath); err != nil {
     log.Errorf("Error validating build target's config file: %s", err.Error())
   }
 
+  // ------------- CLONE BUILDPACK REPO -------------
+
   log.Infof("Cloning %s buildpack...", cfg.Buildpack)
 
-  // Git clone buildpack.
   if err := gogit.CloneAtSha(
     cfg.BuildpackUrl,
     cfg.BuildpackSha,
@@ -58,34 +61,44 @@ func main() {
     return
   }
 
+  // ------------- ATTACH BUILDPACK TO TARGET -------------
+
   log.Infoln("Attaching buildpack to target...")
 
-  // Attach buildpack to target.
-  if err := targetutil.AttachBuildpack(cfg.BuildpackLocalPath, cfg.BuildTargetLocalPath); err != nil {
+  if err := targetutil.AttachBuildpack(
+    cfg.BuildpackLocalPath,
+    cfg.BuildTargetLocalPath,
+    cfg.BuildTargetUid,
+  ); err != nil {
     log.Errorf("Error attaching buildpack to target: %s", err.Error())
     return
   }
 
-  // Initialize new Docker client.
-  if err := docker.Init(cfg.DockerHost, cfg.DockerAPIVersion, map[string]string{}); err != nil {
+  // ------------- CREATE DOCKER CLIENT -------------
+
+  if err := docker.Init(
+    cfg.DockerHost,
+    cfg.DockerAPIVersion,
+    map[string]string{},
+  ); err != nil {
     log.Errorf("Error initializing new Docker client: %s", err.Error())
     return
   }
 
-  // Get tag to be used with this Docker image.
-  imageTag := cfg.ImageTag()
+  // ------------- BUILD & TAG DOCKER IMAGE -------------
 
   log.Infoln("Building target image...")
 
-  // Build augmented target into Docker image.
+  imageTag := cfg.ImageTag()
   if err := docker.Build(cfg.BuildTargetLocalPath, imageTag); err != nil {
     log.Errorf("Error building Docker image: %s", err.Error())
     return
   }
 
+  // ------------- PUSH DOCKER IMAGE -------------
+
   log.Infoln("Registering target image...")
 
-  // Push Docker image to external repository.
   if err := docker.Push(imageTag); err != nil {
     log.Errorf("Error registering Docker image: %s", err.Error())
   }
