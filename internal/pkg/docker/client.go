@@ -10,7 +10,7 @@ import (
 
 var dockerClient *client.Client
 
-// Init creates a new Docker client.
+// Init assigns a new Docker client instance to the global `dockerClient`.
 func Init(host string, apiVersion string, httpHeaders map[string]string) error {
   var err error
   dockerClient, err = client.NewClient(host, apiVersion, nil, httpHeaders)
