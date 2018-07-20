@@ -17,24 +17,22 @@ var redisPool *r.Pool
 var log *logger.Lgr
 
 func main() {
+  // Setup global vars.
   createConfig()
-
   createRedisPool()
-
   createLogger()
 
+  // Clone and validate build target repo.
   cloneBuildTarget()
-
   validateBuildTargetConfig()
 
+  // Clone and attach buildpack to build target.
   cloneBuildpack()
-
   attachBuildpack()
 
+  // Build and push Docker image.
   createDockerClient()
-
   buildImage()
-
   pushImage()
 }
 
