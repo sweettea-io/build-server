@@ -7,102 +7,136 @@ import (
   "github.com/sweettea-io/build-server/internal/pkg/logger"
   "github.com/sweettea-io/build-server/internal/pkg/redis"
   "github.com/sweettea-io/build-server/internal/pkg/util/targetutil"
+  r "github.com/gomodule/redigo/redis"
+  "github.com/Sirupsen/logrus"
+  "fmt"
 )
 
-func main() {
-  // Get new config instance.
-  cfg := config.New()
+var cfg *config.Config
+var redisPool *r.Pool
+var log *logger.Lgr
 
-  // Create new redis pool.
-  pool := redis.NewPool(
+func main() {
+  createConfig()
+
+  createRedisPool()
+
+  createLogger()
+
+  cloneBuildTarget()
+
+  validateBuildTargetConfig()
+
+  cloneBuildpack()
+
+  attachBuildpack()
+
+  createDockerClient()
+
+  buildImage()
+
+  pushImage()
+}
+
+func createConfig() {
+  cfg = config.New()
+}
+
+func createRedisPool() {
+  redisPool = redis.NewPool(
     cfg.RedisAddress,
     cfg.RedisPassword,
     cfg.RedisPoolMaxActive,
     cfg.RedisPoolMaxIdle,
     cfg.RedisPoolWait,
   )
+}
 
-  // Create new logger.
-  log := logger.New(pool, cfg.LogStreamKey())
+func createLogger() {
+  log = &logger.Lgr{
+    Logger: logrus.New(),
+    Redis: redisPool,
+    Stream: cfg.LogStreamKey(),
+  }
+}
 
-  // ------------- CLONE TARGET REPO -------------
+func cloneBuildTarget() {
+  log.Infof("Cloning %s...\n", cfg.BuildTargetUrl)
 
-  log.Infof("Cloning %s...", cfg.BuildTargetUrl)
-
-  if err := gogit.CloneAtSha(
+  err := gogit.CloneAtSha(
     cfg.BuildTargetUrl,
     cfg.BuildTargetSha,
     cfg.BuildTargetLocalPath,
     log.Logger.Out,
-  ); err != nil {
-    log.Errorf("Error cloning target repository: %s", err.Error())
-    return
-  }
+  )
 
-  // ------------- VALIDATE TARGET CONFIG -------------
+  checkErr(err, "Error cloning target repository")
+}
 
+func validateBuildTargetConfig() {
   log.Infoln("Validating target config file...")
+  err := targetutil.ValidateConfig(cfg.BuildTargetLocalPath)
+  checkErr(err, "Error validating build target's config file")
+}
 
-  if err := targetutil.ValidateConfig(cfg.BuildTargetLocalPath); err != nil {
-    log.Errorf("Error validating build target's config file: %s", err.Error())
-  }
+func cloneBuildpack() {
+  log.Infof("Cloning %s buildpack...\n", cfg.Buildpack)
 
-  // ------------- CLONE BUILDPACK REPO -------------
-
-  log.Infof("Cloning %s buildpack...", cfg.Buildpack)
-
-  if err := gogit.CloneAtSha(
+  err := gogit.CloneAtSha(
     cfg.BuildpackUrl,
     cfg.BuildpackSha,
     cfg.BuildpackLocalPath,
     log.Logger.Out,
-  ); err != nil {
-    log.Errorf("Error cloning buildpack repository: %s", err.Error())
-    return
-  }
+  )
 
-  // ------------- ATTACH BUILDPACK TO TARGET -------------
+  checkErr(err, "Error cloning buildpack repository")
+}
 
+func attachBuildpack() {
   log.Infoln("Attaching buildpack to target...")
 
-  if err := targetutil.AttachBuildpack(
+  err := targetutil.AttachBuildpack(
     cfg.Buildpack,
     cfg.BuildpackLocalPath,
     cfg.BuildTargetLocalPath,
     cfg.BuildTargetUid,
-  ); err != nil {
-    log.Errorf("Error attaching buildpack to target: %s", err.Error())
-    return
-  }
+  )
 
-  // ------------- CREATE DOCKER CLIENT -------------
+  checkErr(err, "Error attaching buildpack to target")
+}
 
-  if err := docker.Init(
+func createDockerClient() {
+  err := docker.Init(
     cfg.DockerHost,
     cfg.DockerAPIVersion,
     map[string]string{},
-  ); err != nil {
-    log.Errorf("Error initializing new Docker client: %s", err.Error())
-    return
-  }
+  )
 
-  // ------------- BUILD & TAG DOCKER IMAGE -------------
+  checkErr(err, "Error initializing new Docker client")
+}
 
+func buildImage() {
   log.Infoln("Building target image...")
 
-  imageTag := cfg.ImageTag()
-  buildArgs := map[string]*string{"TARGET_UID": &cfg.BuildTargetUid}
+  err := docker.Build(
+    cfg.BuildTargetLocalPath,
+    cfg.ImageTag(),
+    map[string]*string{"TARGET_UID": &cfg.BuildTargetUid},
+  )
 
-  if err := docker.Build(cfg.BuildTargetLocalPath, imageTag, buildArgs); err != nil {
-    log.Errorf("Error building Docker image: %s", err.Error())
-    return
-  }
+  checkErr(err, "Error building Docker image")
+}
 
-  // ------------- PUSH DOCKER IMAGE -------------
-
+func pushImage() {
   log.Infoln("Registering target image...")
+  err := docker.Push(cfg.ImageTag())
+  checkErr(err, "Error registering Docker image")
+}
 
-  if err := docker.Push(imageTag); err != nil {
-    log.Errorf("Error registering Docker image: %s", err.Error())
+func checkErr(err error, msg string) {
+  if err != nil {
+    msg = fmt.Sprintf("%s: %s", msg, err.Error())
+    log.Errorf(msg)
+    panic(msg)
   }
 }
