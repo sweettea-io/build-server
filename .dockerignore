@@ -1,2 +1,3 @@
 # Ignore these files/directories when copying over files during the docker build process
 .git
+scrap.go
