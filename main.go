@@ -119,7 +119,7 @@ func buildImage() {
   err := docker.Build(
     cfg.BuildTargetLocalPath,
     cfg.ImageTag(),
-    map[string]*string{"TARGET_UID": &cfg.BuildTargetUid},
+    map[string]*string{"TARGET_UID": &cfg.BuildTargetUid}, // build args
   )
 
   checkErr(err, "Error building Docker image")

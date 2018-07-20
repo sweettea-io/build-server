@@ -10,7 +10,7 @@ import (
 )
 
 func AttachBuildpack(buildpack string, bpPath string, targetPath string, targetUid string) error {
-  // Get file extension for buildpack's main file.
+  // Get file extension for buildpack's language.
   mainFileExt, err := extForBuildpack(buildpack)
 
   if err != nil {

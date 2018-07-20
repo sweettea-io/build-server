@@ -36,8 +36,9 @@ func (cfg *Config) LogStreamKey() string {
   return fmt.Sprintf("%s-deploy:%s", cfg.TargetCluster, cfg.DeployUid)
 }
 
+// ImageTag returns the tag to be added to the Docker image being built in this job.
 func (cfg *Config) ImageTag() string {
-  return "<tag>"
+  return fmt.Sprintf("%s/%s-%s:%s", cfg.ImageOwner, cfg.TargetCluster, cfg.BuildTargetUid, cfg.BuildTargetSha)
 }
 
 // New creates and returns a new Config struct instance populated from environment variables.
