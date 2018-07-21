@@ -6,17 +6,19 @@ unlock: ## Unlock all scripts.
 install: ## Install project dependencies.
 	./scripts/install
 
+export env=local
 export format=image
-build: ## Build application as either a Docker image or a Go binary.
-	./scripts/build $(format)
+build: ## Build the application for a specific environment tier as either a Docker image or a Go binary.
+	./scripts/build $(env) $(format)
 
+export env=local
 export format=image
 export daemon
-run: ## Run application as either a Docker image, a Go binary, or a Go file.
+run: ## Run the application as either a Docker image (for a specific environment), a Go binary, or a Go file.
 	./scripts/run $(format) $(daemon)
 
 export env=local
-push: ## Push application's most recently built Docker image to a registry.
+push: ## Push application's most recently built Docker image (for a specific environment) to a registry.
 	./scripts/deploy $(env)
 
 clean: ## Remove all built Go binaries.
