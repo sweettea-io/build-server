@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# --- Build the SweetTea Build Server as either a Go binary or a Docker image --- #
+
+set -e # exit if any child script exits with non-zero status
+
+# ======== PARSE ARGS ======== #
+
+this_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+build_env="$1"
+build_format="$2"
+go_build_output_dir="./bin"
+registries_path="./registries.json"
+
+# ======== VALIDATE ARGS ======== #
+
+$this_dir/validate_arg "env" "$build_env" "local|dev|staging|prod"
+$this_dir/validate_arg "format" "$build_format" "image|binary"
+
+# ======== BUILD APP ======== #
+
+# If building for Docker...
+if [[ "$build_format" = "image" ]]; then
+	# Use build env and registries config to determine which tag to assign to this image.
+	image_org=$( cat "$registries_path" | jq -r ".$build_env.org" )
+	image_name=$( cat "$registries_path" | jq -r ".$build_env.image" )
+
+	# Sub null values for empty strings.
+	if [[ "$image_org" = "null" ]]; then
+		image_org=""
+	fi
+
+	if [[ "$image_name" = "null" ]]; then
+		image_name=""
+	fi
+
+	if [ "$image_org" == "" ] || [ "$image_name" == "" ]; then
+		echo "Error constructing image tag: values for \"$build_env.org\" and \"$build_env.image\" inside \"$registries_path\" must be non-empty strings."
+	fi
+
+	image_version=$( $this_dir/latest_sha )
+	image="$image_org/$image_name:$image_version"
+
+	echo "Building app for \"$build_env\" environment into Docker image \"$image_name\"..."
+
+	# Build the app image.
+	docker build -t "$image" .
+else
+	# Build app into Go binary.
+	echo "Building app into Go binary at \"$go_build_output_dir/main\"..."
+	go build -a -o "$go_build_output_dir/main" .
+fi
+
+echo "Done!"
