@@ -35,6 +35,8 @@ func main() {
   createDockerClient()
   buildImage()
   pushImage()
+
+  log.Infof("%s successfully built and pushed.\n", cfg.ImageTag())
 }
 
 func createConfig() {
