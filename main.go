@@ -13,11 +13,22 @@ import (
   r "github.com/gomodule/redigo/redis"
 )
 
+// App config
 var cfg *config.Config
+
+// Redis pool used for log streaming
 var redisPool *r.Pool
+
+// App logger
 var log *logger.Lgr
+
+// Docker client with custom build/push functionality
 var dockerClient *docker.Client
 
+// main entry point to this job, whose tasks are to:
+// (1) Attach a buildpack to a target repo
+// (2) Build a Docker image from the result
+// (3) Push that Docker image to a registry
 func main() {
   // Setup global vars.
   createConfig()
@@ -40,10 +51,14 @@ func main() {
   log.Infof("%s successfully built and pushed.\n", cfg.ImageTag())
 }
 
+// createConfig creates and assigns an app config
+// instance to the global `cfg` var.
 func createConfig() {
   cfg = config.New()
 }
 
+// createRedisPool creates and assigns a new Redis
+// pool instance to the global `redisPool` var.
 func createRedisPool() {
   redisPool = redis.NewPool(
     cfg.RedisAddress,
@@ -54,6 +69,8 @@ func createRedisPool() {
   )
 }
 
+// createLogger creates and assigns a new logger
+// instance to the global `log` var.
 func createLogger() {
   log = &logger.Lgr{
     Logger: logrus.New(),
@@ -62,6 +79,8 @@ func createLogger() {
   }
 }
 
+// cloneBuildTarget git-clones the build target repository
+// specified in the global app config.
 func cloneBuildTarget() {
   // Ensure destination path doesn't already exist.
   err := fileutil.RemoveIfExists(cfg.BuildTargetLocalPath)
@@ -81,12 +100,15 @@ func cloneBuildTarget() {
   checkErr(cloneErr, "Error cloning target repository")
 }
 
+// validateBuildTargetConfig ensures the SweetTea config file exists inside the
+// cloned build target repository and that it matches the desired key:value structure.
 func validateBuildTargetConfig() {
   log.Infoln("Validating target config file...")
   err := targetutil.ValidateConfig(cfg.BuildTargetLocalPath)
   checkErr(err, "Error validating build target's config file")
 }
 
+// cloneBuildpack git repository.
 func cloneBuildpack() {
   // Ensure destination path doesn't already exist.
   err := fileutil.RemoveIfExists(cfg.BuildpackLocalPath)
@@ -107,6 +129,8 @@ func cloneBuildpack() {
   checkErr(cloneErr, "Error cloning buildpack repository")
 }
 
+// attachBuildpack moves files/directories from the cloned
+// buildpack repository into the cloned build target repository.
 func attachBuildpack() {
   log.Infoln("Attaching buildpack to target...")
 
@@ -120,6 +144,8 @@ func attachBuildpack() {
   checkErr(err, "Error attaching buildpack to target")
 }
 
+// createDockerClient creates and assigns a new Docker
+// client instance to the global `dockerClient` var.
 func createDockerClient() {
   var err error
 
@@ -134,6 +160,8 @@ func createDockerClient() {
   checkErr(err, "Error initializing new Docker client")
 }
 
+// buildImage builds a Docker image from the build target
+// after the buildpack has been attached.
 func buildImage() {
   log.Infoln("Building target image...")
 
@@ -146,12 +174,18 @@ func buildImage() {
   checkErr(err, "Error building Docker image")
 }
 
+// pushImage pushes the Docker image built during
+// `buildImage()` to a remote registry.
 func pushImage() {
   log.Infoln("Registering target image...")
   err := dockerClient.Push(cfg.ImageTag())
   checkErr(err, "Error registering Docker image")
 }
 
+// checkErr checks if an error exists, and if so, does the following:
+// (1) constructs the final error message from the provided `msg` and `err.Error()`
+// (2) logs the error message to both stderr and the Redis log stream
+// (3) panics
 func checkErr(err error, msg string) {
   if err != nil {
     msg = fmt.Sprintf("%s: %s", msg, err.Error())
