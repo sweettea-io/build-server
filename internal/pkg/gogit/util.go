@@ -1,11 +1,11 @@
 package gogit
 
 import (
+  "fmt"
   "io"
   "gopkg.in/src-d/go-git.v4"
   "gopkg.in/src-d/go-git.v4/plumbing"
   URL "net/url"
-  "fmt"
 )
 
 // CloneAtSha git clones a remote repository and then checks out the provided sha.
