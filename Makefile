@@ -13,9 +13,8 @@ build: ## Build the application for a specific environment tier as either a Dock
 
 export env=local
 export format=image
-export daemon
 run: ## Run the application as either a Docker image (for a specific environment), a Go binary, or a Go file.
-	./scripts/run $(format) $(daemon)
+	./scripts/run $(env) $(format)
 
 export env=local
 push: ## Push application's most recently built Docker image (for a specific environment) to a registry.
