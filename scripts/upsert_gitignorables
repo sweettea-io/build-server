@@ -5,21 +5,26 @@
 registries_file="registries.json"
 local_env_file=".env"
 env_defaults_path="./envs/defaults.json"
+image_name="build-server"
 
 # Upsert Docker registries config file.
 if [[ ! -e "./$registries_file" ]]; then
 	contents="{
   \"local\": {
-    \"org\": \"\"
+    \"org\": \"\",
+    \"image\": \"$image_name\"
   },
   \"dev\": {
-    \"org\": \"\"
+    \"org\": \"\",
+    \"image\": \"$image_name\"
   },
   \"staging\": {
-    \"org\": \"\"
+    \"org\": \"\",
+    \"image\": \"$image_name\"
   },
   \"prod\": {
-    \"org\": \"\"
+    \"org\": \"\",
+    \"image\": \"$image_name\"
   }
 }"
 
