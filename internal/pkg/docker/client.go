@@ -114,12 +114,15 @@ func readRespLines(body io.ReadCloser) error {
   reader := bufio.NewReader(body)
 
   for {
-    // TODO: Do check to see if EOF has been reached --> if so, return nil
-
     // Read a line of bytes from the response.
     lineBytes, err := reader.ReadBytes('\n')
 
     if err != nil {
+      // Return successfully when EOF reached.
+      if err == io.EOF {
+        return nil
+      }
+
       return err
     }
 
