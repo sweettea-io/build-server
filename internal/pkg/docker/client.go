@@ -9,6 +9,9 @@ import (
   "io"
   "encoding/json"
   "encoding/base64"
+  "fmt"
+  "errors"
+  "bufio"
 )
 
 var dockerClient *Client
@@ -76,8 +79,10 @@ func Build(dir string, tag string, buildArgs map[string]*string) error {
     return err
   }
 
-  // Copy log output from push command to stdout.
-  io.Copy(os.Stdout, resp.Body)
+  // Read the response.
+  if err := readRespLines(resp.Body); err != nil {
+    return err
+  }
 
   return nil
 }
@@ -96,8 +101,38 @@ func Push(name string, ) error {
     return err
   }
 
-  // Copy log output from push command to stdout.
-  io.Copy(os.Stdout, output)
+  // Read the response.
+  if err := readRespLines(output); err != nil {
+    return err
+  }
 
   return nil
+}
+
+func readRespLines(body io.ReadCloser) error {
+  // Pass response body into new reader.
+  reader := bufio.NewReader(body)
+
+  for {
+    // TODO: Do check to see if EOF has been reached --> if so, return nil
+
+    // Read a line of bytes from the response.
+    lineBytes, err := reader.ReadBytes('\n')
+
+    if err != nil {
+      return err
+    }
+
+    // Log the line as a string.
+    fmt.Print(string(lineBytes[:]))
+
+    // Parse the line into JSON.
+    var lineJSON map[string]string
+    json.Unmarshal(lineBytes, &lineJSON)
+
+    // Check if this line indicates an error.
+    if lineJSON["error"] != "" {
+      return errors.New(lineJSON["error"])
+    }
+  }
 }
