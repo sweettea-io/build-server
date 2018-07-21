@@ -34,17 +34,17 @@ type Config struct {
   TargetCluster          string `env:"TARGET_CLUSTER,required"`
 }
 
-// LogStreamKey returns the redis key of the redis stream used for logging.
+// LogStreamKey returns the key for the redis stream used for logging.
 func (cfg *Config) LogStreamKey() string {
   return fmt.Sprintf("%s-deploy:%s", cfg.TargetCluster, cfg.DeployUid)
 }
 
-// ImageTag returns the tag to be added to the Docker image being built in this job.
+// ImageTag returns the tag for the Docker image being built in this job.
 func (cfg *Config) ImageTag() string {
   return fmt.Sprintf("%s/%s-%s:%s", cfg.DockerRegistryOrg, cfg.TargetCluster, cfg.BuildTargetUid, cfg.BuildTargetSha)
 }
 
-// New creates and returns a new Config struct instance populated from environment variables.
+// New creates and returns a new config instance populated from environment variables.
 func New() *Config {
   // Unmarshal values into a config struct.
   var cfg Config
@@ -58,8 +58,9 @@ func New() *Config {
   return &cfg
 }
 
-// Validate Config values even further than what has
-// already been done during the Decode process.
+// validateConfigs applies further validation in relation to what these
+// config values actually are. The checks for whether these values exist or not have
+// already been taken care of using tags in the `Config` struct definition.
 func validateConfigs(cfg *Config) {
   // Ensure TARGET_CLUSTER value is supported.
   if !targetutil.IsValidTargetCluster(cfg.TargetCluster) {

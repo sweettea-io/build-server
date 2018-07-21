@@ -8,7 +8,7 @@ import (
   URL "net/url"
 )
 
-// CloneAtSha git clones a remote repository and then checks out the provided sha.
+// CloneAtSha git-clones a remote repository and then checks out the provided sha.
 func CloneAtSha(url string, sha string, accessToken string, dest string, prog io.Writer) error {
   var repoUrl string
   var err error
@@ -46,13 +46,16 @@ func CloneAtSha(url string, sha string, accessToken string, dest string, prog io
   return nil
 }
 
+// createAuthedUrl adds `<token>:x-oauth-basic` to an existing url, given an access token.
 func createAuthedUrl(url string, accessToken string) (string, error) {
+  // Parse provided url.
   u, err := URL.Parse(url)
 
   if err != nil {
     return "", err
   }
 
+  // Format authed url (ex. "https://myaccesstoken:x-oauth-basic@github.com/my/repo")
   authedUrl := fmt.Sprintf(
     "%s://%s:x-oauth-basic@%s%s",
     u.Scheme,

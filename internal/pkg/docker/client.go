@@ -14,7 +14,8 @@ import (
   "github.com/sweettea-io/build-server/internal/pkg/util/tar"
 )
 
-// Wrapper type around Docker *client.Client, providing custom build/push functionality.
+// Client is a wrapper type around the imported docker `*client.Client` type,
+// providing custom build/push functionality.
 type Client struct {
   client *client.Client
   auth   string
@@ -58,7 +59,7 @@ func (dc *Client) Build(dir string, tag string, buildArgs map[string]*string) er
   return nil
 }
 
-// Push a specified Docker image or repository to a registry.
+// Push a Docker image to DockerHub by name.
 func (dc *Client) Push(name string) error {
   // Create Docker push options.
   pushOpts := types.ImagePushOptions{
@@ -80,7 +81,7 @@ func (dc *Client) Push(name string) error {
   return nil
 }
 
-// New creates and returns a new `Client` instance pointer.
+// New creates and returns a new Docker client instance.
 func New(host string, apiVersion string, httpHeaders map[string]string, username string, password string) (*Client, error) {
   // Create a new Docker client.
   internalClient, err := client.NewClient(host, apiVersion, nil, httpHeaders)
@@ -109,7 +110,7 @@ func New(host string, apiVersion string, httpHeaders map[string]string, username
 }
 
 // readRespLines reads and JSON-parses lines from a Docker API response body
-// and returns an error if an "error" key is found in the line.
+// and returns an error if an "error" key is found in any line.
 func readRespLines(body io.ReadCloser) error {
   // Pass response body into new reader.
   reader := bufio.NewReader(body)

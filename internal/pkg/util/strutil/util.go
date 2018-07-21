@@ -1,8 +1,10 @@
 package strutil
 
-func InSlice(a string, list []string) bool {
-  for _, b := range list {
-    if b == a {
+// InSlice returns a boolean indicating whether the provided
+// string exists inside the provided slice of strings.
+func InSlice(str string, strList []string) bool {
+  for _, entry := range strList {
+    if entry == str {
       return true
     }
   }
