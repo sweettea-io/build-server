@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# --- Push application's most recently built Docker image (for the provided env) to a registry --- #
+
+set -e # exit if any child script exits with non-zero status
+
+# ======== PARSE ARGS ======== #
+
+this_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+push_env="$1"
+registries_path="./registries.json"
+
+# ======== VALIDATE ARGS ======== #
+
+$this_dir/validate_arg "env" "$push_env" "local|dev|staging|prod"
+
+# ======== GET FULL IMAGE NAME ======== #
+
+# Use run env and registries config to determine the image tag to look for.
+image_org=$( cat "$registries_path" | jq -r ".$push_env.org" )
+image_name=$( cat "$registries_path" | jq -r ".$push_env.image" )
+
+# Sub null values for empty strings.
+if [[ "$image_org" = "null" ]]; then
+	image_org=""
+fi
+
+if [[ "$image_name" = "null" ]]; then
+	image_name=""
+fi
+
+if [ "$image_org" == "" ] || [ "$image_name" == "" ]; then
+	echo "Error constructing image tag: values for \"$push_env.org\" and \"$push_env.image\" inside \"$registries_path\" must be non-empty strings."
+fi
+
+image_repo="$image_org/$image_name"
+
+# Get latest image version for this image.
+image_version="$( docker images $image_repo | sed -n 2p | awk '{print $2}' )"
+
+if [[ ! "$image_version" ]]; then
+	echo "Couldn't find tag for Docker repository \"$image_repo\"...Exiting."
+	exit 1
+fi
+
+if [[ "$image_version" == "<none>" ]]; then
+	echo "Tag for latest Docker repository \"$image_repo\" can't be \"<none>\"...Exiting."
+	exit 1
+fi
+
+# ======== PUSH IMAGE TO REPOSITORY ======== #
+
+docker push "$image_repo:$image_version"
