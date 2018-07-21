@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# --- Install everything required to get up and running with development of the Sweet Tea Build Server --- #
+
+set -e # exit if any child script exits with non-zero status
+
+# Directory of this script.
+this_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Current os -- will exit if not mac or linux.
+os="$( $this_dir/curr_os )"
+
+# Install `jq` to help with bash json parsing.
+$this_dir/$os/install_jq
+
+# Install `dep` -- Go package management tool used with this project.
+$this_dir/$os/install_dep
+
+# Upsert files/dirs that were gitignored and shsould now exist.
+$this_dir/upsert_gitignorables
+
+# Install third-party Go packages listed in Gopkg.toml.
+$this_dir/install_pkgs
+
+# Install Redis.
+$this_dir/install_redis
+
+echo "Done!"

@@ -6,7 +6,7 @@ import (
   "github.com/sweettea-io/envdecode"
 )
 
-// Config represents app config populated from environment variables.
+// Config represents app config populated from environment variables
 type Config struct {
   Buildpack              string `env:"BUILDPACK,required"`
   BuildpackAccessToken   string `env:"BUILDPACK_ACCESS_TOKEN"`
@@ -18,14 +18,12 @@ type Config struct {
   BuildTargetSha         string `env:"BUILD_TARGET_SHA,required"`
   BuildTargetUid         string `env:"BUILD_TARGET_UID,required"`
   BuildTargetUrl         string `env:"BUILD_TARGET_URL,required"`
-  Debug                  bool   `env:"DEBUG,required"`
   DeployUid              string `env:"DEPLOY_UID,required"`
   DockerAPIVersion       string `env:"DOCKER_API_VERSION,default=v1.30"`
   DockerHost             string `env:"DOCKER_HOST,default=unix:///var/run/docker.sock"`
   DockerRegistryOrg      string `env:"DOCKER_REGISTRY_ORG,required"`
   DockerRegistryUsername string `env:"DOCKER_REGISTRY_USERNAME,required"`
   DockerRegistryPassword string `env:"DOCKER_REGISTRY_PASSWORD,required"`
-  Env                    string `env:"ENV,required"`
   RedisPoolMaxActive     int    `env:"REDIS_POOL_MAX_ACTIVE,required"`
   RedisPoolMaxIdle       int    `env:"REDIS_POOL_MAX_IDLE,required"`
   RedisPoolWait          bool   `env:"REDIS_POOL_WAIT,required"`

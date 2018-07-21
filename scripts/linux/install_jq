@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# --- Install jq if not already installed --- #
+
+# Check for jq existence.
+if [[ "$( which jq )" ]]; then
+	echo "jq detected -- Skipping installation"
+else
+	echo "jq not detected -- Installing..."
+
+	# Make sure supported Linux flavor is running.
+	if [[ "$( which apt-get )" ]]; then
+		sudo apt-get install jq
+		chmod +x $( which jq )
+	else
+		echo "Skipping jq installation...Linux flavor not an APT system. Will need to be done manually."
+	fi
+fi

@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# --- Upsert files/dirs that were git-ignored and should now exist --- #
+
+registries_file="registries.json"
+local_env_file=".env"
+env_defaults_path="./envs/defaults.json"
+
+# Upsert Docker registries config file.
+if [[ ! -e "./$registries_file" ]]; then
+	contents="{
+  \"local\": {
+    \"org\": \"\"
+  },
+  \"dev\": {
+    \"org\": \"\"
+  },
+  \"staging\": {
+    \"org\": \"\"
+  },
+  \"prod\": {
+    \"org\": \"\"
+  }
+}"
+
+	echo "Creating Docker registries config file \"$registries_file\"."
+	printf "$contents" > "./$registries_file"
+fi
+
+# Upsert local env file.
+if [[ ! -e "./$local_env_file" ]]; then
+	keys=$( cat "$env_defaults_path" | jq -r "keys[]" )
+
+	# Get an array of all env vars keys.
+	IFS=$'\n' read -rd '' -a keys_arr <<<"$keys"
+
+	# Create .env file contents as a string.
+	env_vars=""
+	for key in "${keys_arr[@]}"; do
+		# Get value for this key.
+		val=$( cat "$env_defaults_path" | jq -r ".$key" )
+
+		# Sub null values for empty strings.
+		if [[ "$val" = "null" ]]; then
+			val=""
+		fi
+
+		# Add env key/value pair to this set of envs
+		env_vars+="export $key=\"$val\"\n"
+	done
+
+	echo "Creating local env file \"$local_env_file\"."
+
+	# Write env vars to file.
+	printf "$env_vars" > "./$local_env_file"
+fi

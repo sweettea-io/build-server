@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# --- Get current OS as either "linux", "mac", or "unknown" --- #
+
+unameOut="$( uname -s )"
+
+case "${unameOut}" in
+    Linux*)  os="linux";;
+    Darwin*) os="mac";;
+    *)       os="unknown"
+esac
+
+echo "$os"
