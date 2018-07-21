@@ -18,7 +18,7 @@ run: ## Run the application as either a Docker image (for a specific environment
 
 export env=local
 push: ## Push application's most recently built Docker image (for a specific environment) to a registry.
-	./scripts/deploy $(env)
+	./scripts/push $(env)
 
 clean: ## Remove all built Go binaries.
 	rm ./bin/*
