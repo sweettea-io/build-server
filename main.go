@@ -69,9 +69,11 @@ func cloneBuildTarget() {
 
   log.Infof("Cloning %s...\n", cfg.BuildTargetUrl)
 
+  // Clone build target repo at specified sha.
   cloneErr := gogit.CloneAtSha(
     cfg.BuildTargetUrl,
     cfg.BuildTargetSha,
+    cfg.BuildTargetAccessToken,
     cfg.BuildTargetLocalPath,
     log.Logger.Out,
   )
@@ -93,9 +95,11 @@ func cloneBuildpack() {
 
   log.Infof("Cloning %s buildpack...\n", cfg.Buildpack)
 
+  // Clone buildpack repo at specified sha.
   cloneErr := gogit.CloneAtSha(
     cfg.BuildpackUrl,
     cfg.BuildpackSha,
+    cfg.BuildpackAccessToken,
     cfg.BuildpackLocalPath,
     log.Logger.Out,
   )

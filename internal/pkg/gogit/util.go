@@ -4,11 +4,22 @@ import (
   "io"
   "gopkg.in/src-d/go-git.v4"
   "gopkg.in/src-d/go-git.v4/plumbing"
+  URL "net/url"
+  "fmt"
 )
 
-func CloneAtSha(url string, sha string, dest string, prog io.Writer) error {
+// CloneAtSha git clones a remote repository and then checks out the provided sha.
+func CloneAtSha(url string, sha string, accessToken string, dest string, prog io.Writer) error {
+  var repoUrl string
+  var err error
+
+  // Create authed url from accessToken if provided.
+  if accessToken != "" {
+    repoUrl, err = createAuthedUrl(url, accessToken)
+  }
+
   // Create clone options.
-  cloneOpts := &git.CloneOptions{URL: url, Progress: prog}
+  cloneOpts := &git.CloneOptions{URL: repoUrl, Progress: prog}
 
   // Clone repo to specified location.
   repo, err := git.PlainClone(dest, false, cloneOpts)
@@ -28,9 +39,27 @@ func CloneAtSha(url string, sha string, dest string, prog io.Writer) error {
   checkoutOpts := &git.CheckoutOptions{Hash: plumbing.NewHash(sha)}
 
   // Checkout to the specified sha.
-  if err = workingTree.Checkout(checkoutOpts); err != nil {
+  if err := workingTree.Checkout(checkoutOpts); err != nil {
     return err
   }
 
   return nil
+}
+
+func createAuthedUrl(url string, accessToken string) (string, error) {
+  u, err := URL.Parse(url)
+
+  if err != nil {
+    return "", err
+  }
+
+  authedUrl := fmt.Sprintf(
+    "%s://%s:x-oauth-basic@%s%s",
+    u.Scheme,
+    accessToken,
+    u.Host,
+    u.RequestURI(),
+  )
+
+  return authedUrl, nil
 }

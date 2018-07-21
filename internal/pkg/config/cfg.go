@@ -9,9 +9,11 @@ import (
 // Config represents app config populated from environment variables.
 type Config struct {
   Buildpack              string `env:"BUILDPACK,required"`
+  BuildpackAccessToken   string `env:"BUILDPACK_ACCESS_TOKEN"`
   BuildpackLocalPath     string `env:"BUILDPACK_LOCAL_PATH,default=/tmp/buildpack"`
   BuildpackSha           string `env:"BUILDPACK_SHA,required"`
   BuildpackUrl           string `env:"BUILDPACK_URL,required"`
+  BuildTargetAccessToken string `env:"BUILD_TARGET_ACCESS_TOKEN"`
   BuildTargetLocalPath   string `env:"BUILD_TARGET_LOCAL_PATH,default=/tmp/target"`
   BuildTargetSha         string `env:"BUILD_TARGET_SHA,required"`
   BuildTargetUid         string `env:"BUILD_TARGET_UID,required"`
