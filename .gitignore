@@ -14,5 +14,4 @@
 vendor/
 bin/
 tmp/
-scrap.go
 registries.json
