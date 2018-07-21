@@ -21,8 +21,8 @@ type Config struct {
   DockerAPIVersion       string `env:"DOCKER_API_VERSION,default=v1.30"`
   DockerHost             string `env:"DOCKER_HOST,default=unix:///var/run/docker.sock"`
   DockerRegistryOrg      string `env:"DOCKER_REGISTRY_ORG,required"`
-  DockerRegistryPassword string `env:"DOCKER_REGISTRY_PASSWORD,required"`
   DockerRegistryUsername string `env:"DOCKER_REGISTRY_USERNAME,required"`
+  DockerRegistryPassword string `env:"DOCKER_REGISTRY_PASSWORD,required"`
   Env                    string `env:"ENV,required"`
   RedisPoolMaxActive     int    `env:"REDIS_POOL_MAX_ACTIVE,required"`
   RedisPoolMaxIdle       int    `env:"REDIS_POOL_MAX_IDLE,required"`
