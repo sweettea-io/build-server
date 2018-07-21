@@ -1,21 +1,22 @@
 package main
 
 import (
+  "fmt"
+  "github.com/Sirupsen/logrus"
   "github.com/sweettea-io/build-server/internal/pkg/config"
   "github.com/sweettea-io/build-server/internal/pkg/docker"
   "github.com/sweettea-io/build-server/internal/pkg/gogit"
   "github.com/sweettea-io/build-server/internal/pkg/logger"
   "github.com/sweettea-io/build-server/internal/pkg/redis"
+  "github.com/sweettea-io/build-server/internal/pkg/util/fileutil"
   "github.com/sweettea-io/build-server/internal/pkg/util/targetutil"
   r "github.com/gomodule/redigo/redis"
-  "github.com/Sirupsen/logrus"
-  "fmt"
-  "github.com/sweettea-io/build-server/internal/pkg/util/fileutil"
 )
 
 var cfg *config.Config
 var redisPool *r.Pool
 var log *logger.Lgr
+var dockerClient *docker.Client
 
 func main() {
   // Setup global vars.
@@ -116,7 +117,9 @@ func attachBuildpack() {
 }
 
 func createDockerClient() {
-  err := docker.Init(
+  var err error
+
+  dockerClient, err = docker.New(
     cfg.DockerHost,
     cfg.DockerAPIVersion,
     map[string]string{}, // default headers
@@ -130,7 +133,7 @@ func createDockerClient() {
 func buildImage() {
   log.Infoln("Building target image...")
 
-  err := docker.Build(
+  err := dockerClient.Build(
     cfg.BuildTargetLocalPath,
     cfg.ImageTag(),
     map[string]*string{"TARGET_UID": &cfg.BuildTargetUid}, // build args
@@ -141,7 +144,7 @@ func buildImage() {
 
 func pushImage() {
   log.Infoln("Registering target image...")
-  err := docker.Push(cfg.ImageTag())
+  err := dockerClient.Push(cfg.ImageTag())
   checkErr(err, "Error registering Docker image")
 }
 

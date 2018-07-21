@@ -1,56 +1,27 @@
 package docker
 
 import (
-  "github.com/docker/docker/client"
-  "os"
+  "bufio"
   "context"
-  "github.com/sweettea-io/build-server/internal/pkg/util/tar"
-  "github.com/docker/docker/api/types"
-  "io"
+  "errors"
   "encoding/json"
   "encoding/base64"
   "fmt"
-  "errors"
-  "bufio"
+  "io"
+  "os"
+  "github.com/docker/docker/api/types"
+  "github.com/docker/docker/client"
+  "github.com/sweettea-io/build-server/internal/pkg/util/tar"
 )
 
-var dockerClient *Client
-
+// Wrapper type around Docker *client.Client, providing custom build/push functionality.
 type Client struct {
   client *client.Client
   auth   string
 }
 
-// Init assigns a new Docker `Client` instance to the global `dockerClient`.
-func Init(host string, apiVersion string, httpHeaders map[string]string, username string, password string) error {
-  // Create a new Docker client.
-  dc, err := client.NewClient(host, apiVersion, nil, httpHeaders)
-
-  if err != nil {
-    return err
-  }
-
-  // Marshal JSON auth config.
-  jsonAuth, err := json.Marshal(types.AuthConfig{
-    Username: username,
-    Password: password,
-  })
-
-  if err != nil {
-    return err
-  }
-
-  // Create new `DockerClient` instance.
-  dockerClient = &Client{
-    client: dc,
-    auth: base64.URLEncoding.EncodeToString(jsonAuth),
-  }
-
-  return nil
-}
-
 // Build a Docker image from the specified directory containing a Dockerfile.
-func Build(dir string, tag string, buildArgs map[string]*string) error {
+func (dc *Client) Build(dir string, tag string, buildArgs map[string]*string) error {
   // Create tar file from build dir (ex. '/my/path' --> '/my/path.tar').
   buildContextPath, err := tar.Create(dir)
 
@@ -73,7 +44,7 @@ func Build(dir string, tag string, buildArgs map[string]*string) error {
   }
 
   // Build the Docker image.
-  resp, err := dockerClient.client.ImageBuild(context.Background(), buildContext, buildOpts)
+  resp, err := dc.client.ImageBuild(context.Background(), buildContext, buildOpts)
 
   if err != nil {
     return err
@@ -88,14 +59,14 @@ func Build(dir string, tag string, buildArgs map[string]*string) error {
 }
 
 // Push a specified Docker image or repository to a registry.
-func Push(name string, ) error {
+func (dc *Client) Push(name string) error {
   // Create Docker push options.
   pushOpts := types.ImagePushOptions{
-    RegistryAuth: dockerClient.auth,
+    RegistryAuth: dc.auth,
   }
 
   // Push image.
-  output, err := dockerClient.client.ImagePush(context.Background(), name, pushOpts)
+  output, err := dc.client.ImagePush(context.Background(), name, pushOpts)
 
   if err != nil {
     return err
@@ -109,6 +80,36 @@ func Push(name string, ) error {
   return nil
 }
 
+// New creates and returns a new `Client` instance pointer.
+func New(host string, apiVersion string, httpHeaders map[string]string, username string, password string) (*Client, error) {
+  // Create a new Docker client.
+  internalClient, err := client.NewClient(host, apiVersion, nil, httpHeaders)
+
+  if err != nil {
+    return nil, err
+  }
+
+  // Marshal JSON auth config.
+  jsonAuth, err := json.Marshal(types.AuthConfig{
+    Username: username,
+    Password: password,
+  })
+
+  if err != nil {
+    return nil, err
+  }
+
+  // Create new `Client` instance.
+  dc := &Client{
+    client: internalClient,
+    auth: base64.URLEncoding.EncodeToString(jsonAuth),
+  }
+
+  return dc, nil
+}
+
+// readRespLines reads and JSON-parses lines from a Docker API response body
+// and returns an error if an "error" key is found in the line.
 func readRespLines(body io.ReadCloser) error {
   // Pass response body into new reader.
   reader := bufio.NewReader(body)
