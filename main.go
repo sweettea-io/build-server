@@ -10,6 +10,7 @@ import (
   r "github.com/gomodule/redigo/redis"
   "github.com/Sirupsen/logrus"
   "fmt"
+  "github.com/sweettea-io/build-server/internal/pkg/util/fileutil"
 )
 
 var cfg *config.Config
@@ -59,16 +60,20 @@ func createLogger() {
 }
 
 func cloneBuildTarget() {
+  // Ensure destination path doesn't already exist.
+  err := fileutil.RemoveIfExists(cfg.BuildTargetLocalPath)
+  checkErr(err, "Error removing directory")
+
   log.Infof("Cloning %s...\n", cfg.BuildTargetUrl)
 
-  err := gogit.CloneAtSha(
+  cloneErr := gogit.CloneAtSha(
     cfg.BuildTargetUrl,
     cfg.BuildTargetSha,
     cfg.BuildTargetLocalPath,
     log.Logger.Out,
   )
 
-  checkErr(err, "Error cloning target repository")
+  checkErr(cloneErr, "Error cloning target repository")
 }
 
 func validateBuildTargetConfig() {
@@ -78,16 +83,21 @@ func validateBuildTargetConfig() {
 }
 
 func cloneBuildpack() {
+  // Ensure destination path doesn't already exist.
+  err := fileutil.RemoveIfExists(cfg.BuildpackLocalPath)
+  checkErr(err, "Error removing directory")
+
+
   log.Infof("Cloning %s buildpack...\n", cfg.Buildpack)
 
-  err := gogit.CloneAtSha(
+  cloneErr := gogit.CloneAtSha(
     cfg.BuildpackUrl,
     cfg.BuildpackSha,
     cfg.BuildpackLocalPath,
     log.Logger.Out,
   )
 
-  checkErr(err, "Error cloning buildpack repository")
+  checkErr(cloneErr, "Error cloning buildpack repository")
 }
 
 func attachBuildpack() {
@@ -107,7 +117,9 @@ func createDockerClient() {
   err := docker.Init(
     cfg.DockerHost,
     cfg.DockerAPIVersion,
-    map[string]string{},
+    map[string]string{}, // default headers
+    cfg.DockerRegistryUsername,
+    cfg.DockerRegistryPassword,
   )
 
   checkErr(err, "Error initializing new Docker client")

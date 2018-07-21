@@ -7,19 +7,20 @@ import (
 
 // Create a new tar file from a directory.
 func Create(dir string) (string, error) {
-  tar := new(archivex.TarFile)
+  tarfile := new(archivex.TarFile)
+  tarfilePath := strings.TrimRight(dir, "/") + ".tar"
 
-  if err := tar.Create(dir); err != nil {
+  if err := tarfile.Create(tarfilePath); err != nil {
     return "", err
   }
 
-  if err := tar.AddAll(dir, false); err != nil {
+  if err := tarfile.AddAll(dir, false); err != nil {
     return "", err
   }
 
-  if err := tar.Close(); err != nil {
+  if err := tarfile.Close(); err != nil {
     return "", err
   }
 
-  return strings.TrimRight(dir, "/") + ".tar", nil
+  return tarfilePath, nil
 }

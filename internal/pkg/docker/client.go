@@ -7,17 +7,40 @@ import (
   "github.com/sweettea-io/build-server/internal/pkg/util/tar"
   "github.com/docker/docker/api/types"
   "io"
+  "encoding/json"
+  "encoding/base64"
 )
 
-var dockerClient *client.Client
+var dockerClient *Client
 
-// Init assigns a new Docker client instance to the global `dockerClient`.
-func Init(host string, apiVersion string, httpHeaders map[string]string) error {
-  var err error
-  dockerClient, err = client.NewClient(host, apiVersion, nil, httpHeaders)
+type Client struct {
+  client *client.Client
+  auth   string
+}
+
+// Init assigns a new Docker `Client` instance to the global `dockerClient`.
+func Init(host string, apiVersion string, httpHeaders map[string]string, username string, password string) error {
+  // Create a new Docker client.
+  dc, err := client.NewClient(host, apiVersion, nil, httpHeaders)
 
   if err != nil {
     return err
+  }
+
+  // Marshal JSON auth config.
+  jsonAuth, err := json.Marshal(types.AuthConfig{
+    Username: username,
+    Password: password,
+  })
+
+  if err != nil {
+    return err
+  }
+
+  // Create new `DockerClient` instance.
+  dockerClient = &Client{
+    client: dc,
+    auth: base64.URLEncoding.EncodeToString(jsonAuth),
   }
 
   return nil
@@ -25,7 +48,7 @@ func Init(host string, apiVersion string, httpHeaders map[string]string) error {
 
 // Build a Docker image from the specified directory containing a Dockerfile.
 func Build(dir string, tag string, buildArgs map[string]*string) error {
-  // Create tar file from build dir (ex. '/my/path' --> '/my/path.tar')
+  // Create tar file from build dir (ex. '/my/path' --> '/my/path.tar').
   buildContextPath, err := tar.Create(dir)
 
   if err != nil {
@@ -36,7 +59,7 @@ func Build(dir string, tag string, buildArgs map[string]*string) error {
   buildContext, err := os.Open(buildContextPath)
   defer buildContext.Close()
 
-  // Create Docker build options
+  // Create Docker build options.
   buildOpts := types.ImageBuildOptions{
     SuppressOutput: false,
     Remove: true,
@@ -47,17 +70,27 @@ func Build(dir string, tag string, buildArgs map[string]*string) error {
   }
 
   // Build the Docker image.
-  if _, err := dockerClient.ImageBuild(context.Background(), buildContext, buildOpts); err != nil {
+  resp, err := dockerClient.client.ImageBuild(context.Background(), buildContext, buildOpts)
+
+  if err != nil {
     return err
   }
+
+  // Copy log output from push command to stdout.
+  io.Copy(os.Stdout, resp.Body)
 
   return nil
 }
 
 // Push a specified Docker image or repository to a registry.
-func Push(name string) error {
+func Push(name string, ) error {
+  // Create Docker push options.
+  pushOpts := types.ImagePushOptions{
+    RegistryAuth: dockerClient.auth,
+  }
+
   // Push image.
-  output, err := dockerClient.ImagePush(context.Background(), name, types.ImagePushOptions{})
+  output, err := dockerClient.client.ImagePush(context.Background(), name, pushOpts)
 
   if err != nil {
     return err
