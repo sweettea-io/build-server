@@ -1,9 +1,9 @@
 package logger
 
 import (
+  "fmt"
   "github.com/Sirupsen/logrus"
   r "github.com/gomodule/redigo/redis"
-  "fmt"
 )
 
 // Define different log level keys.

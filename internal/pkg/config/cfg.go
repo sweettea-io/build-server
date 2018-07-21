@@ -2,8 +2,8 @@ package config
 
 import (
   "fmt"
-  "github.com/sweettea-io/envdecode"
   "github.com/sweettea-io/build-server/internal/pkg/util/targetutil"
+  "github.com/sweettea-io/envdecode"
 )
 
 // Config represents app config populated from environment variables.
