@@ -123,7 +123,7 @@ func createBuildTargetConfig() {
 // cloned build target repository and that it matches the desired key:value structure.
 func validateBuildTargetConfig() {
   log.Infoln("Validating target config file...")
-  err := targetConfig.Validate()
+  err := targetConfig.Validate(cfg.TargetCluster)
   checkErr(err, "Error validating build target's config file")
 }
 
