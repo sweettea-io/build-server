@@ -1,31 +1,24 @@
 package targetutil
 
 import (
-  "errors"
   "fmt"
   "io/ioutil"
   "os"
   "strings"
   "github.com/sweettea-io/build-server/internal/pkg/util/strutil"
+  "github.com/sweettea-io/build-server/internal/pkg/util/buildpack"
 )
 
 // AttachBuildpack moves files/dirs from the provided buildpack path to the provided build target path.
-func AttachBuildpack(buildpack string, bpPath string, targetPath string, targetUid string) error {
-  // Get file extension for buildpack's language.
-  mainFileExt, err := extForBuildpack(buildpack)
-
-  if err != nil {
-    return err
-  }
-
+func AttachBuildpack(bp *buildpack.Buildpack, bpPath string, targetPath string, targetUid string) error {
   // Trim any trailing slashes from path args.
   bpPath = strings.TrimRight(bpPath, "/")
   targetPath = strings.TrimRight(targetPath, "/")
 
   // Rename buildpack's main file to include the targetUid.
   if err := os.Rename(
-    fmt.Sprintf("%s/main.%s", bpPath, mainFileExt),
-    fmt.Sprintf("%s/main_%s.%s", bpPath, targetUid, mainFileExt),
+    fmt.Sprintf("%s/main.%s", bpPath, bp.FileExt),
+    fmt.Sprintf("%s/main_%s.%s", bpPath, targetUid, bp.FileExt),
   ); err != nil {
     return err
   }
@@ -71,14 +64,4 @@ func AttachBuildpack(buildpack string, bpPath string, targetPath string, targetU
   }
 
   return nil
-}
-
-// extForBuildpack returns the file extension associated
-// with the language of the provided buildpack name.
-func extForBuildpack(buildpack string) (string, error) {
-  if strings.HasPrefix(buildpack, "python") {
-    return "py", nil
-  } else {
-    return "", errors.New(fmt.Sprintf("language not recognized for buildpack: %s", buildpack))
-  }
 }

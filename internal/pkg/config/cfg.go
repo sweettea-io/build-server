@@ -4,6 +4,9 @@ import (
   "fmt"
   "github.com/sweettea-io/build-server/internal/pkg/util/targetutil"
   "github.com/sweettea-io/envdecode"
+  "github.com/sweettea-io/build-server/internal/pkg/util/buildpack"
+  "github.com/sweettea-io/build-server/internal/pkg/targetconfig"
+  "github.com/sweettea-io/build-server/internal/pkg/util/lang"
 )
 
 // Config represents app config populated from environment variables
@@ -37,6 +40,39 @@ type Config struct {
 // ImageTag returns the tag for the Docker image being built in this job.
 func (cfg *Config) ImageTag() string {
   return fmt.Sprintf("%s/%s-%s:%s", cfg.DockerRegistryOrg, cfg.TargetCluster, cfg.BuildTargetUid, cfg.BuildTargetSha)
+}
+
+func (cfg *Config) Buildpack(targetCfg *targetconfig.Config) (*buildpack.Buildpack, error) {
+  // Get buildpack name based on the target cluster value.
+  bpName := ""
+  switch cfg.TargetCluster {
+  case targetutil.Train:
+    bpName = targetCfg.Training.Buildpack
+  case targetutil.API:
+    bpName = targetCfg.Hosting.Buildpack
+  }
+
+  // Create and return appropriate Buildpack struct for buildpack name.
+  switch bpName {
+  case buildpack.PythonTrainBuildpack:
+    return &buildpack.Buildpack{
+      Name: buildpack.PythonTrainBuildpack,
+      Url: cfg.PythonTrainBuildpackUrl,
+      Sha: cfg.PythonTrainBuildpackSha,
+      AccessToken: cfg.PythonTrainBuildpackAccessToken,
+      FileExt: lang.Python.FileExt,
+    }, nil
+  case buildpack.PythonJsonApiBuildpack:
+    return &buildpack.Buildpack{
+      Name: buildpack.PythonJsonApiBuildpack,
+      Url: cfg.PythonJsonApiBuildpackUrl,
+      Sha: cfg.PythonJsonApiBuildpackSha,
+      AccessToken: cfg.PythonJsonApiBuildpackAccessToken,
+      FileExt: lang.Python.FileExt,
+    }, nil
+  default:
+    return nil, fmt.Errorf("can't configure buildpack for name: \"%s\"", bpName)
+  }
 }
 
 // New creates and returns a new config instance populated from environment variables.

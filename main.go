@@ -8,6 +8,8 @@ import (
   "github.com/sweettea-io/build-server/internal/pkg/gogit"
   "github.com/sweettea-io/build-server/internal/pkg/logger"
   "github.com/sweettea-io/build-server/internal/pkg/redis"
+  "github.com/sweettea-io/build-server/internal/pkg/targetconfig"
+  "github.com/sweettea-io/build-server/internal/pkg/util/buildpack"
   "github.com/sweettea-io/build-server/internal/pkg/util/fileutil"
   "github.com/sweettea-io/build-server/internal/pkg/util/targetutil"
   r "github.com/gomodule/redigo/redis"
@@ -15,6 +17,12 @@ import (
 
 // App config
 var cfg *config.Config
+
+// Represents build target's config file
+var targetConfig *targetconfig.Config
+
+// Buildpack to use in this job.
+var bp *buildpack.Buildpack
 
 // Redis pool used for log streaming
 var redisPool *r.Pool
@@ -37,9 +45,11 @@ func main() {
 
   // Clone and validate build target repo.
   cloneBuildTarget()
+  createBuildTargetConfig()
   validateBuildTargetConfig()
 
   // Clone and attach buildpack to build target.
+  createBuildpack()
   cloneBuildpack()
   attachBuildpack()
 
@@ -75,7 +85,7 @@ func createLogger() {
   log = &logger.Lgr{
     Logger: logrus.New(),
     Redis: redisPool,
-    Stream: cfg.LogStreamKey(),
+    Stream: cfg.LogStreamKey,
   }
 }
 
@@ -100,12 +110,27 @@ func cloneBuildTarget() {
   checkErr(cloneErr, "Error cloning target repository")
 }
 
+func createBuildTargetConfig() {
+  log.Infoln("Parsing target config file...")
+
+  var err error
+  targetConfig, err = targetconfig.New(cfg.BuildTargetLocalPath)
+
+  checkErr(err, "Error parsing build target's config file")
+}
+
 // validateBuildTargetConfig ensures the SweetTea config file exists inside the
 // cloned build target repository and that it matches the desired key:value structure.
 func validateBuildTargetConfig() {
   log.Infoln("Validating target config file...")
-  err := targetutil.ValidateConfig(cfg.BuildTargetLocalPath)
+  err := targetConfig.Validate()
   checkErr(err, "Error validating build target's config file")
+}
+
+func createBuildpack() {
+  var err error
+  bp, err = cfg.Buildpack(targetConfig)
+  checkErr(err, "Error configuring buildpack")
 }
 
 // cloneBuildpack git repository.
@@ -114,14 +139,13 @@ func cloneBuildpack() {
   err := fileutil.RemoveIfExists(cfg.BuildpackLocalPath)
   checkErr(err, "Error removing directory")
 
-
-  log.Infof("Cloning %s buildpack...\n", cfg.Buildpack)
+  log.Infof("Cloning %s buildpack...\n", bp.Name)
 
   // Clone buildpack repo at specified sha.
   cloneErr := gogit.CloneAtSha(
-    cfg.BuildpackUrl,
-    cfg.BuildpackSha,
-    cfg.BuildpackAccessToken,
+    bp.Url,
+    bp.Sha,
+    bp.AccessToken,
     cfg.BuildpackLocalPath,
     log.Logger.Out,
   )
@@ -135,7 +159,7 @@ func attachBuildpack() {
   log.Infoln("Attaching buildpack to target...")
 
   err := targetutil.AttachBuildpack(
-    cfg.Buildpack,
+    bp,
     cfg.BuildpackLocalPath,
     cfg.BuildTargetLocalPath,
     cfg.BuildTargetUid,
