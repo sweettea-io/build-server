@@ -1,5 +1,7 @@
 package buildpack
 
+import "fmt"
+
 // Buildpack struct representation
 type Buildpack struct {
   Name        string
@@ -15,12 +17,12 @@ const (
   PythonJsonApiBuildpack = "python-json-api"
 )
 
-var validBuildpacks = map[string]bool {
-  PythonTrainBuildpack: true,
-  PythonJsonApiBuildpack: true,
-}
-
-// Check if buildpack name is supported.
-func IsValidBuildpack(name string) bool {
-  return validBuildpacks[name] == true
+// Validate buildpack is supported for provided name.
+func Validate(name string) error {
+  switch name {
+  case PythonTrainBuildpack, PythonJsonApiBuildpack:
+    return nil
+  default:
+    return fmt.Errorf("buildpack \"%s\" not supported", name)
+  }
 }

@@ -124,7 +124,7 @@ func createBuildTargetConfig() {
 func validateBuildTargetConfig() {
   log.Infoln("Validating target config file...")
   err := targetConfig.Validate(cfg.TargetCluster)
-  checkErr(err, "Error validating build target's config file")
+  checkErr(err, "Error validating target config file")
 }
 
 func createBuildpack() {

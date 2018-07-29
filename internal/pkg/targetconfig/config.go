@@ -7,7 +7,6 @@ import (
   "strings"
   "github.com/sweettea-io/build-server/internal/pkg/util/fileutil"
   "gopkg.in/yaml.v2"
-  "github.com/sweettea-io/build-server/internal/pkg/util/targetutil"
 )
 
 // ConfigFile is the name of the build target config file.
@@ -26,7 +25,7 @@ type Config struct {
     Eval  string
     Model struct {
       Path           string
-      UploadCriteria string
+      UploadCriteria *string
     }
   }
   Hosting struct {
@@ -36,25 +35,6 @@ type Config struct {
       Path string
     }
   }
-}
-
-func (c *Config) Validate(targetCluster string) error {
-  switch targetCluster {
-  case targetutil.Train:
-    return c.ValidateTraining()
-  case targetutil.API:
-    return c.ValidateHosting()
-  default:
-    return fmt.Errorf("target cluster \"%s\" unknown", targetCluster)
-  }
-}
-
-func (c *Config) ValidateTraining() error {
-  return nil
-}
-
-func (c *Config) ValidateHosting() error {
-  return nil
 }
 
 func New(targetDir string) (*Config, error) {
