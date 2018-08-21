@@ -84,7 +84,7 @@ func createRedisPool() {
 func createLogger() {
   log = &logger.Lgr{
     Logger: logrus.New(),
-    Redis: redisPool,
+    RedisPool: redisPool,
     Stream: cfg.LogStreamKey,
   }
 }
@@ -139,7 +139,8 @@ func cloneBuildpack() {
   err := fileutil.RemoveIfExists(cfg.BuildpackLocalPath)
   checkErr(err, "Error removing directory")
 
-  log.Infof("Cloning %s buildpack...\n", bp.Name)
+  log.Infof("%s buildpack detected\n", bp.Name)
+  log.Infoln("Cloning buildpack...")
 
   // Clone buildpack repo at specified sha.
   cloneErr := gogit.CloneAtSha(

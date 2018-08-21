@@ -21,7 +21,7 @@ var (
 // Lgr is a wrapper type around `*logrus.Logger`, providing Redis stream functionality.
 type Lgr struct {
   Logger *logrus.Logger
-  Redis *r.Pool
+  RedisPool *r.Pool
   Stream string
 }
 
@@ -135,6 +135,12 @@ func (l *Lgr) InternalErrorln(args ...interface{}) {
 
 // newStreamEntry adds a new message to the logger's redis stream.
 func (l *Lgr) newStreamEntry(msg string, level string) {
-  // TODO: Put "stage" inside payload here somewhere.
-  // TODO: Figure out redis xadd Go functionality
+  // Get new connection from Redis pool.
+  conn := l.RedisPool.Get()
+  defer conn.Close()
+
+  // Add message to log stream.
+  if _, err := conn.Do("XADD", l.Stream, "*", "text", msg, "level", level); err != nil {
+    l.InternalErrorf("error logging to stream: %s", err.Error())
+  }
 }
