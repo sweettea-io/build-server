@@ -140,7 +140,7 @@ func (l *Lgr) newStreamEntry(msg string, level string) {
   defer conn.Close()
 
   // Add message to log stream.
-  if _, err := conn.Do("XADD", l.Stream, "*", "text", msg, "level", level); err != nil {
+  if _, err := conn.Do("XADD", l.Stream, "*", "msg", msg, "level", level); err != nil {
     l.InternalErrorf("error logging to stream: %s", err.Error())
   }
 }
