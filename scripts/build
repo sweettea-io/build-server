@@ -9,6 +9,7 @@ set -e # exit if any child script exits with non-zero status
 this_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 build_env="$1"
 build_format="$2"
+image_version="$3"
 go_build_output_dir="./bin"
 registries_path="./registries.json"
 
@@ -38,7 +39,11 @@ if [[ "$build_format" = "image" ]]; then
 		echo "Error constructing image tag: values for \"$build_env.org\" and \"$build_env.image\" inside \"$registries_path\" must be non-empty strings."
 	fi
 
-	image_version=$( $this_dir/latest_sha )
+	# If image version not provided, use latest sha as version.
+	if [[ ! "$image_version" ]]; then
+		image_version=$( $this_dir/latest_sha )
+	fi
+
 	image="$image_org/$image_name:$image_version"
 
 	echo "Building app for \"$build_env\" environment into Docker image \"$image_name\"..."

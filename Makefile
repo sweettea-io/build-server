@@ -8,8 +8,9 @@ install: ## Install project dependencies.
 
 export env=local
 export format=image
+export version=latest
 build: ## Build the application for a specific environment tier as either a Docker image or a Go binary.
-	./scripts/build $(env) $(format)
+	./scripts/build $(env) $(format) $(version)
 
 export env=local
 export format=image
