@@ -8,6 +8,7 @@ set -e # exit if any child script exits with non-zero status
 
 this_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 push_env="$1"
+image_version="$2"
 registries_path="./registries.json"
 
 # ======== VALIDATE ARGS ======== #
@@ -35,8 +36,10 @@ fi
 
 image_repo="$image_org/$image_name"
 
-# Get latest image version for this image.
-image_version="$( docker images $image_repo | sed -n 2p | awk '{print $2}' )"
+# If image version not provided, get latest built version from images list.
+if [[ ! "$image_version" ]]; then
+	image_version="$( docker images $image_repo | sed -n 2p | awk '{print $2}' )"
+fi
 
 if [[ ! "$image_version" ]]; then
 	echo "Couldn't find tag for Docker repository \"$image_repo\"...Exiting."
