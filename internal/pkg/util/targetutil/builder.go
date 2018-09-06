@@ -15,11 +15,39 @@ func AttachBuildpack(bp *buildpack.Buildpack, bpPath string, targetPath string, 
   bpPath = strings.TrimRight(bpPath, "/")
   targetPath = strings.TrimRight(targetPath, "/")
 
-  // Rename buildpack's main file to include the targetUid.
+  // Calculate main executable's unique name (what it will be updated to).
+  curr_main_exec := fmt.Sprintf("main.%s", bp.FileExt)
+  new_main_exec := fmt.Sprintf("main_%s.%s", targetUid, bp.FileExt)
+
+  // Rename current main executable to new name.
   if err := os.Rename(
-    fmt.Sprintf("%s/main.%s", bpPath, bp.FileExt),
-    fmt.Sprintf("%s/main_%s.%s", bpPath, targetUid, bp.FileExt),
+    fmt.Sprintf("%s/%s", bpPath, curr_main_exec),
+    fmt.Sprintf("%s/%s", bpPath, new_main_exec),
   ); err != nil {
+    return err
+  }
+
+  // Read in Dockerfile of buildpack.
+  dfilePath := fmt.Sprintf("%s/Dockerfile", bpPath)
+  dfileContents, err := ioutil.ReadFile(dfilePath)
+
+  if err != nil {
+    return err
+  }
+
+  // Get lines of Dockerfile as an array of strings.
+  dfileLines := strings.Split(string(dfileContents), "\n")
+
+  // Update last line of Dockerfile, modifying the main executable's name to its new one.
+  dfileLines[len(dfileLines) - 1] = strings.Replace(
+    dfileLines[len(dfileLines) - 1],
+    curr_main_exec,
+    new_main_exec,
+    1,
+  )
+
+  // Save new Dockerfile contents in place.
+  if err := ioutil.WriteFile(dfilePath, []byte(strings.Join(dfileLines, "\n")), 0644); err != nil {
     return err
   }
 
